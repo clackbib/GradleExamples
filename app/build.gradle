@@ -1,0 +1,74 @@
+apply plugin: 'android'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.0.3"
+
+    defaultConfig {
+        minSdkVersion 13
+        targetSdkVersion 19
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:19.+'
+}
+
+def executeJavaFile(workingDirectory) {
+    new ByteArrayOutputStream().withStream { os ->
+        def result = exec {
+            executable = 'java'
+            args = ["-jar",
+                    'src/main/java/compilescripts/Script.jar',
+                    workingDirectory.toString() + '/src/main/res/base',
+                    workingDirectory.toString() + '/src/main/res',
+                    "#111111",
+                    "#FF0833"
+            ]
+            workingDir = workingDirectory
+            standardOutput = os
+            ignoreExitValue true
+        }
+        def outputAsString = os.toString()
+        ext.svnRev = outputAsString
+    }
+
+    return svnRev
+}
+
+/*
+def compileJavaFile(workingDirectory) {
+    new ByteArrayOutputStream().withStream { os ->
+        def result = exec {
+            executable = 'javac'
+            args = ['src/main/java/compilescripts/SimpleScript.java']
+            workingDir = workingDirectory
+            standardOutput = os
+            ignoreExitValue true
+        }
+        def outputAsString = os.toString()
+        ext.svnRev = outputAsString
+    }
+    return "Success"
+}*/
+
+
+android.applicationVariants.all { variant ->
+
+    //def classPath = variant.javaCompile.classpath
+    //def projectDir = project.projectDir
+    //println compileJavaFile(projectDir)
+    println executeJavaFile(projectDir)
+
+}
